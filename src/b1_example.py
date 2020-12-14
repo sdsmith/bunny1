@@ -6,7 +6,7 @@ An example bunny1 server with some common commands that you might want to use.
 """
 __version__ = "1.1"
 
-import urlparse
+import urllib.parse
 import subprocess
 
 import bunny1
@@ -146,7 +146,7 @@ class ExampleCommands(bunny1.Bunny1Commands):
             return PRE(eval(arg))
         except Content:
             raise
-        except Exception, e:
+        except Exception as e:
             return PRE("<span style='color: red;'>" + escape(str(e)) + "</span>")
 
     def time(self, arg):
@@ -319,12 +319,12 @@ small {
 
         # this code makes it so that if you put a command in angle brackets
         # (so it looks like an HTML tag), then the command will get executed.
-        # doing something like this is useful when there is a server on your 
-        # LAN with the same name as a command that you want to use without 
+        # doing something like this is useful when there is a server on your
+        # LAN with the same name as a command that you want to use without
         # any arguments.  ex. at facebook, there is an 'svn' command and
-        # the svn(.facebook.com) server, so if you type 'svn' into the 
+        # the svn(.facebook.com) server, so if you type 'svn' into the
         # location bar of a browser, it goes to the server first even though
-        # that's not usually what you want.  this provides a workaround for 
+        # that's not usually what you want.  this provides a workaround for
         # that problem.
         if raw.startswith("<") and raw.endswith(">"):
             return self._b1.do_command(raw[1:-1])
@@ -335,7 +335,7 @@ small {
 
 def rewrite_tld(url, new_tld):
     """changes the last thing after the dot in the netloc in a URL"""
-    (scheme, netloc, path, query, fragment) = urlparse.urlsplit(url)
+    (scheme, netloc, path, query, fragment) = urllib.parse.urlsplit(url)
     domain = netloc.split(".")
 
     # this is just an example so we naievely assume the TLD doesn't
@@ -343,7 +343,7 @@ def rewrite_tld(url, new_tld):
     # URLs for example)...
     domain[-1] = new_tld
     new_domain = ".".join(domain)
-    return urlparse.urlunsplit((scheme, new_domain, path, query, fragment))
+    return urllib.parse.urlunsplit((scheme, new_domain, path, query, fragment))
 
 def tld_rewriter(new_tld):
     """returns a function that rewrites the TLD of a URL to be new_tld"""
@@ -386,8 +386,8 @@ class ExampleBunny(bunny1.Bunny1):
     def __init__(self):
         bunny1.Bunny1.__init__(self, ExampleCommands(), ExampleDecorators())
 
-    # an example showing how you can handle URLs that happen before 
-    # the querystring by adding methods to the Bunny class instead of 
+    # an example showing how you can handle URLs that happen before
+    # the querystring by adding methods to the Bunny class instead of
     # the commands class
     @cherrypy.expose
     def header_gif(self):
@@ -398,5 +398,3 @@ class ExampleBunny(bunny1.Bunny1):
 
 if __name__ == "__main__":
     bunny1.main(ExampleBunny())
-
-

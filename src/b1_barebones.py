@@ -6,7 +6,7 @@ A barebones bunny1 server that should be easy to modify for your own use
 """
 __date__ = "Thu Feb 12 09:05:40 PST 2009"
 
-import urlparse
+import urllib.parse
 
 import bunny1
 from bunny1 import cherrypy
@@ -38,5 +38,3 @@ class MyBunny(bunny1.Bunny1):
 
 if __name__ == "__main__":
     bunny1.main(MyBunny())
-
-

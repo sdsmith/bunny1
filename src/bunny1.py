@@ -4,20 +4,20 @@ import sys
 import os
 import re
 import cgi
-import urllib
-import urlparse
+import urllib.request, urllib.parse, urllib.error
+import urllib.parse
 import optparse
 import socket
 
-from urllib import quote as q
-from urllib import quote_plus as qp
+from urllib.parse import quote as q
+from urllib.parse import quote_plus as qp
 from xml.sax.saxutils import escape
 
 import cherrypy
 from cherrypy import HTTPRedirect
 from cherrypy import expose
 
-from itertools import imap, izip, ifilter
+
 
 __doc__ = """
     bunny1 is a tool that lets you write smart bookmarks in python and then
@@ -161,7 +161,7 @@ class Bunny1(object):
             arg = self.decorators.default_url()
 
         # if you type in a URL, just go there
-        if urlparse.urlsplit(method)[0]:
+        if urllib.parse.urlsplit(method)[0]:
             method = "url"
             arg = raw
 
@@ -169,7 +169,7 @@ class Bunny1(object):
         if method == "_debug":
             try:
                 return self.do_command(arg)
-            except HTTPRedirect, redir:
+            except HTTPRedirect as redir:
                 url = escape(redir.urls[0])
                 return "<code><b>bunny1</b> DEBUG: redirect to <a href='%s'>%s</a></code>" % (url, url)
 
@@ -224,7 +224,7 @@ class Bunny1(object):
                     url = decorator_method(url)
 
                 raise HTTPRedirect(url)
-            except Content, content:
+            except Content as content:
                 cherrypy.response.headers['Content-Type'] = content.content_type
                 return content.html
 
@@ -387,7 +387,7 @@ class Bunny1Commands(object):
     @dont_expose
     def _popularity_html(self, num=None):
         p = self.popularity
-        pairs = [(val, key) for (key, val) in p.items() if key not in DONT_LIST_AS_POPULAR]
+        pairs = [(val, key) for (key, val) in list(p.items()) if key not in DONT_LIST_AS_POPULAR]
         pairs.sort()
         pairs.reverse()
         html = "<b><i>"
@@ -410,7 +410,8 @@ class Bunny1Commands(object):
     def list(self, arg):
         """show the list of methods you can use or search that list"""
 
-        def is_exposed_method( (name, method) ):
+        def is_exposed_method(xxx_todo_changeme ):
+            (name, method) = xxx_todo_changeme
             return not name.startswith("__") and callable(method) \
                        and method.__doc__ and not getattr(method, "dont_expose", False) \
                        and not getattr(method, "unlisted", False)
@@ -419,8 +420,8 @@ class Bunny1Commands(object):
         if arg:
             arg_lower = arg.lower()
             html = ""
-            search_predicate = lambda (name, method): is_exposed_method((name,method)) and \
-                               (arg_lower in name.lower() or arg_lower in method.__doc__)
+            search_predicate = lambda name_method: is_exposed_method((name_method[0],name_method[1])) and \
+                               (arg_lower in name_method[0].lower() or arg_lower in name_method[1].__doc__)
         else:
             html = self._popularity_html(10) + "<hr ><b><i>All Commands</i></b><br />"
             search_predicate = is_exposed_method
@@ -432,8 +433,8 @@ class Bunny1Commands(object):
         html += '<table>'
         html += ''.join(
             ['<tr><td><b>%s</b></td><td>%s</td></tr>' % (name, escape(method.__doc__)) for
-             name, method in ifilter(search_predicate,
-                                     izip(attr_names, imap(attr_getter, attr_names)))])
+             name, method in filter(search_predicate,
+                                     zip(attr_names, map(attr_getter, attr_names)))])
         html += '<table>'
 
         raise Content(html)
@@ -458,7 +459,7 @@ class Bunny1Commands(object):
         """show the cookies set on this server or search through them"""
         cookie = cherrypy.request.cookie
         html = ""
-        for name in cookie.keys():
+        for name in list(cookie.keys()):
             val = cookie[name].value
             if not arg or (arg in name or arg in val):
                 html += "<b>%s</b><br />%s<br /><br />" % (escape(str(name)), escape(str(val)))
@@ -483,7 +484,7 @@ class Bunny1Commands(object):
             except IndexError:
                 html = "usage:<br />alias <i>alias</i> <i>real-command</i><br />or<br />alias <i>alias</i><br /><hr />"
                 cookie = cherrypy.request.cookie
-                for name in cookie.keys():
+                for name in list(cookie.keys()):
                     if str(name).startswith("alias."):
                         html += "<b>%s</b> is aliased to <b>%s</b><br />" % (escape(name[6:]), escape(cookie[name].value))
                 raise Content(html)
@@ -635,7 +636,7 @@ class PasswordProtectedBunny1(Bunny1):
 
         try:
             password = cherrypy.request.cookie["b1passwd"].value
-        except (AttributeError, KeyError), e:
+        except (AttributeError, KeyError) as e:
             return False
 
         return (password == self.password())
@@ -657,11 +658,11 @@ def main(b1, b1op=Bunny1OptionParser()):
         if options.test_command is not None:
             try:
                 b1._server_mode = "COMMAND_LINE"
-                print b1.do_command(options.test_command)
-            except HTTPRedirect, redir:
+                print(b1.do_command(options.test_command))
+            except HTTPRedirect as redir:
                 # the escape sequences make the output show up yellow on terminals
                 # in the case of a redirect to distinguish from content output
-                print "\033[33m%s:\033[0m %s" % (redir.__class__.__name__, redir)
+                print("\033[33m%s:\033[0m %s" % (redir.__class__.__name__, redir))
         else:
 
             if options.port:
@@ -699,7 +700,7 @@ def main_cgi(b1):
         cmd = form.getvalue(COMMAND_QUERY_STRING_VAR)
         if not cmd:
             try:
-                cmd = urllib.unquote_plus(os.environ["QUERY_STRING"])
+                cmd = urllib.parse.unquote_plus(os.environ["QUERY_STRING"])
             except KeyError:
                 cmd = DEFAULT_COMMAND
         response = b1.do_command(cmd)
@@ -707,11 +708,11 @@ def main_cgi(b1):
             content_type = cherrypy.response.headers['Content-type']
         else:
             content_type = "text/html"
-        print "Content-type: %s\n" % content_type
-        print response
-    except cherrypy.HTTPRedirect, redir:
+        print("Content-type: %s\n" % content_type)
+        print(response)
+    except cherrypy.HTTPRedirect as redir:
         url = redir.urls[0]
-        print "Location: " + url + "\n\n"
+        print("Location: " + url + "\n\n")
 
 # it doesn't really make sense to run this module as a standalone program
 # but it may be useful for testing in some rare cases

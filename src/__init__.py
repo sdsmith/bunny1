@@ -1,1 +1,1 @@
-from bunny1 import *
+from .bunny1 import *
