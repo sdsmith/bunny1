@@ -40,12 +40,12 @@ BUNNY1_HOME_URL = "http://www.bunny1.org/"
 
 # a list of commands that we shouldn't list as popular because
 # they sometimes get invoked behind the scenes but not usually
-# directly, and we want to avoid confusing users who look at the 
+# directly, and we want to avoid confusing users who look at the
 # list of most popular commands.
 DONT_LIST_AS_POPULAR = ("echo", "url", "_setpasswd")
 
 # a query stirng var that you can use instead of specifying your
-# command as the querystring.  this is useful when the user is 
+# command as the querystring.  this is useful when the user is
 # submitting forms.  we choose the triple underscore since no
 # commands can start with any more than two underscores.
 COMMAND_QUERY_STRING_VAR = "___"
@@ -377,7 +377,7 @@ class Bunny1Commands(object):
     h = history
 
     # since command history is only stored in memory and not persisted,
-    # history and popularity data won't be available when running 
+    # history and popularity data won't be available when running
     # in cgi mode.
 
     def popular(self, arg):
@@ -583,7 +583,8 @@ def load(key):
 
 def bunny1_file(name):
     """the binary contents of a file in the same directory as bunny1"""
-    return file(os.path.dirname(__file__) + os.path.sep + name).read()
+    with open(os.path.dirname(__file__) + os.path.sep + name, 'rb') as f:
+        return f.read()
 
 class Bunny1OptionParser(optparse.OptionParser):
     """a class for getting bunny1 options"""
@@ -617,7 +618,7 @@ class PasswordProtectionCommands(object):
             next = " ".join(args[1:])
         else:
             next = None
-            
+
         save("b1passwd", passwd)
 
         if next:
@@ -718,5 +719,3 @@ def main_cgi(b1):
 # but it may be useful for testing in some rare cases
 if __name__ == "__main__":
     main(Bunny1(Bunny1Commands(), Bunny1Decorators()))
-
-
