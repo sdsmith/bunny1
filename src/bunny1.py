@@ -112,6 +112,8 @@ class Bunny1(object):
     def do_command(self, raw, a=(), k={}):
         """does the specified command"""
 
+        print(raw)
+
         self.commands.history.append(raw)
         if not raw:
             raw = DEFAULT_COMMAND
@@ -693,7 +695,7 @@ def main(b1, b1op=Bunny1OptionParser()):
 def main_cgi(b1):
     """for running bunny1 as a cgi"""
 
-    # this mostly works, but it has problems serving images andother
+    # this mostly works, but it has problems serving images and other
     # static content
 
     try:
