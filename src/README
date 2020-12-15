@@ -52,7 +52,12 @@ You can send feedback and bug reports to bunny1-feedback@lists.facebook.com .
 
     -- ccheever
 
+# Requirements
+- Python3
+  - setuptools
 
-# Installation
+# Browser Installation
 ## Firefox
 Use the [Add Custom Search Engine](https://addons.mozilla.org/en-US/firefox/addon/add-custom-search-engine/) extension.
+
+Set the search URL to `http://<host>/?%s`.
